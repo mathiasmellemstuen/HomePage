@@ -2,3 +2,63 @@ body {
     margin: 0;
     overflow: hidden;
 }
+#content {
+    position:fixed; 
+    top:10px;
+    bottom:10px;
+    left:25%;
+    right:25%; 
+    display:flex;
+    flex-direction: column;
+    color: white; 
+    background-color: rgba(0, 0, 0, 0.596);
+    padding: 10px;
+}
+#title {
+    margin-bottom: 0px;
+}
+#under-text {
+    width:100%;
+    border-bottom: 1px solid white;
+}
+.smaller-text {
+    font-size: 0.8rem;
+}
+.list-container {
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid white;
+    cursor: pointer;
+    padding:10px;
+    color:white;
+    margin-bottom: 10px;
+}
+.list-container:hover {
+    border: 1px solid rgb(237, 79, 0);
+    color:red
+}
+.list-container-title {
+    font-size: larger;
+}
+.list-container-under-text {
+    color:white !important
+}
+
+#project-list {
+    list-style-type: none;
+    width:50%;
+    margin-left: 0;
+    padding-left: 0;
+    margin-right:auto;
+}
+a {
+   color: rgb(237, 79, 0);
+}
+a:hover {
+    color: red;
+}
+p {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
