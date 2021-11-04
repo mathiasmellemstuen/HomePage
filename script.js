@@ -1,38 +1,46 @@
+var screenHeight = window.innerHeight; 
+var screenWidth = window.innerWidth; 
+
+class Point {
+    constructor(x, y) {
+        this.x = x; 
+        this.y = y; 
+        this.previousXDirection = (lerp(-1, 1, Math.random())) > 0 ? 1 : 0;
+        this.previousYDirection = (lerp(-1, 1, Math.random())) > 0 ? 1 : 0;
+    }
+    directionX() {
+
+        this.previousXDirection = this.x >= screenWidth ? -1 : this.x <= 0 ? 1 : this.previousXDirection;
+        return this.previousXDirection; 
+    }
+    directionY() {
+
+        this.previousYDirection = this.y >= screenHeight ? -1 : this.y <= 0 ? 1 : this.previousYDirection;
+        return this.previousYDirection;
+    }
+}
+
+var amountOfPoints = parseInt(lerp(4, 20, Math.random())); 
+var points = [];
+
+for(let i = 0; i < amountOfPoints; i++)
+    points.push(new Point(lerp(0, screenWidth, Math.random()), lerp(0, screenHeight, Math.random())));
+
 var backgroundCanvas; 
 var context; 
-
 var mouseX; 
 var mouseY; 
-var currentColorIndex = 0; 
 var colorDifference = 0.02; 
-var x0; 
-var y0; 
-var x1; 
-var y1; 
-var x2; 
-var y2; 
-var x3; 
-var y3;
-var dir0 = 1; 
-var dir1 = 1;
-var dir2 = 1; 
-var dir3 = 1;
-
-color = "white"; 
-
-maxSpeed = 1; 
+var color = "white"; 
+var maxSpeed = 1; 
+var time = 0; 
+var updateMs = 10;
 window.onload = function() {
 
-    x0 = lerp(0, 1920, Math.random());
-    x1 = lerp(0, 1920, Math.random());
-    x2 = lerp(0, 1920, Math.random());
-    x3 = lerp(0, 1920, Math.random());
-    y0 = lerp(0, 1080, Math.random()); 
-    y1 = lerp(0, 1080, Math.random()); 
-    y2 = lerp(0, 1080, Math.random()); 
-    y3 = lerp(0, 1080, Math.random()); 
-
     backgroundCanvas = document.getElementById("backgroundCanvas"); 
+    backgroundCanvas.width = screenWidth;
+    backgroundCanvas.height = screenHeight;
+
     context = backgroundCanvas.getContext("2d"); 
 
     backgroundCanvas.addEventListener("mousemove", function(e) { 
@@ -41,84 +49,114 @@ window.onload = function() {
         mouseY = Math.round(e.clientY - cRect.top);
     });
 
-    setInterval(update, 10); 
+    setInterval(update, updateMs); 
 }
 function update() {
-    dir0 = x0 >= 1920 ? -1 : x0 <= 0 ? 1 : y0 >= 1080 ? -1 : y0 <= 0 ? -1 : dir0;  
-    dir1 = x1 >= 1920 ? -1 : x1 <= 0 ? 1 : y1 >= 1080 ? -1 : y1 <= 0 ? -1 : dir1;  
-    dir2 = x2 >= 1920 ? -1 : x2 <= 0 ? 1 : y2 >= 1080 ? -1 : y2 <= 0 ? -1 : dir2;  
-    dir3 = x3 >= 1920 ? -1 : x3 <= 0 ? 1 : y3 >= 1080 ? -1 : y3 <= 0 ? -1 : dir3;
-    x0 += dir0 * lerp(0, maxSpeed, Math.random());
-    y0 += dir0 * lerp(0, maxSpeed, Math.random());
-    x1 += dir1 * lerp(0, maxSpeed, Math.random());
-    y1 += dir1 * lerp(0, maxSpeed, Math.random());
-    x2 += dir2 * lerp(0, maxSpeed, Math.random());
-    y2 += dir2 * lerp(0, maxSpeed, Math.random());
-    x3 += dir3 * lerp(0, maxSpeed, Math.random());
-    y3 += dir3 * lerp(0, maxSpeed, Math.random());
-
-    delta = 0.03; 
+    time += updateMs / 1000;
+    delta = 0.02 + Math.sin(0.01 / time); 
     context.clearRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
     context.fillStyle = "black";
     context.fillRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
 
-    for(let t = 0; t < 1 - delta + 0.00001; t+= delta) {
-        let cubic = bezierCubic(x0, y0, x1, y1, x2, y2, x3, y3, t);
+    let lastCurve;
 
+    for(let i = 0; i < points.length; i+=2) {
+        
+        for(let t = 0; t < 1 - delta + 0.00001; t+= delta) {
+            
+            if(points[i + 3] == undefined)
+                break; 
+
+            let currentCurve = bezierCubic(points[i + 0], points[i + 1], points[i + 2], points[i + 3], t);
+
+            if(lastCurve != undefined) {
+                drawLine(lastCurve, currentCurve, "white", 1.0, context);  
+            }
+            lastCurve = currentCurve; 
+        }
     }
-    currentColorIndex = 0; 
+    for(let i = 0; i < points.length - 1; i++) {
+
+        points[i].x += points[i].directionX() * lerp(0, maxSpeed, Math.random());
+        points[i].y += points[i].directionY() * lerp(0, maxSpeed, Math.random());
+    }
+
+    context.font = '12px serif';
+    context.fillStyle = "white";
+    let text = "Visualization of the Quadratic Béziers curve algorithm";
+    let metrics = context.measureText(text);
+    let fontHeight = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
+    let actualHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+    context.fillText(text,screenWidth - metrics.width - 10,screenHeight - actualHeight);
 }
 
-function bezierCubic(x0, y0, x1, y1, x2, y2, x3, y3, t) {
-    let v1 = bezierQuadratic(x0, y0, x1, y1, x2, y2, t); 
-    let v2 = bezierQuadratic(x1, y1, x2, y2, x3, y3, t); 
+function bezierCubic(point0, point1, point2, point3, t) {
+    let v1 = bezier(point0, point1, point2, t); 
+    let v2 = bezier(point1, point2, point3, t); 
     let x = lerp(v1.x, v2.x, t); 
     let y = lerp(v1.y, v2.y, t);
 
-    if(Math.abs(mouseX - x) <= 100 && Math.abs(mouseY - y) <= 100) {
-        color = "red"; 
-    }
-    drawLine(v1.x, v1.y, v2.x, v2.y, color, 1.0, context); 
+    // if(Math.abs(mouseX - x) <= 100 && Math.abs(mouseY - y) <= 100) {
+    //     color = "red"; 
+    // }
+    drawLine(v1, v2, color, 1.0, context); 
 
-    color = "white"; 
-    let returnValue = {
-        "x" : x,
-        "y" : y 
-    }
-    return returnValue; 
+    // color = "white";
+
+    return new Point(x, y); 
 }
-function bezierQuadratic(x0, y0, x1, y1, x2, y2, t) {
-    lx1 = lerp(x0, x1, t); 
-    ly1 = lerp(y0, y1, t); 
-    lx2 = lerp(x1, x2, t); 
-    ly2 = lerp(y1, y2, t); 
+function bezier(point0, point1, point2, t) {
+    lx1 = lerp(point0.x, point1.x, t); 
+    ly1 = lerp(point0.y, point1.y, t); 
+    lx2 = lerp(point1.x, point2.x, t); 
+    ly2 = lerp(point1.y, point2.y, t); 
     
     x = lerp(lx1, lx2, t);
     y = lerp(ly1, ly2, t);
 
-    if(Math.abs(mouseX - x) <= 100 && Math.abs(mouseY - y) <= 100) {
-        color = "orange"; 
-    }
-    drawLine(lx1, ly1, lx2, ly2, color, 1.0, context);  
+    // if(Math.abs(mouseX - x) <= 100 && Math.abs(mouseY - y) <= 100) {
+    //     color = "orange"; 
+    // }
+    drawLine(new Point(lx1, ly1), new Point(lx2, ly2), color, 1.0, context);  
 
-    color = "white"; 
-
-    let returnValue = {
-        "x" : x,
-        "y" : y
-    }
-    return returnValue; 
+    // color = "white"; 
+    return new Point(x, y); 
 }
 
 function lerp(x0, x1, t) {
     return x0 + (x1 - x0) * t; 
 }
-function drawLine(x0, y0, x1, y1, color, strokeWidth, context) {
-    currentColorIndex += 1; 
+function hsvToRgb(h, s, v) {
+    var r, g, b;
+  
+    var i = Math.floor(h * 6);
+    var f = h * 6 - i;
+    var p = v * (1 - s);
+    var q = v * (1 - f * s);
+    var t = v * (1 - (1 - f) * s);
+  
+    switch (i % 6) {
+      case 0: r = v, g = t, b = p; break;
+      case 1: r = q, g = v, b = p; break;
+      case 2: r = p, g = v, b = t; break;
+      case 3: r = p, g = q, b = v; break;
+      case 4: r = t, g = p, b = v; break;
+      case 5: r = v, g = p, b = q; break;
+    }
+  
+    return [ r * 255, g * 255, b * 255 ];
+  }
+
+function drawLine(point0, point1, color, strokeWidth, context) {
+
+    point = Math.abs(point1.x - point0.x) / 2;
+    value = 180 + Math.sin(point/screenWidth);
+    rgb = hsvToRgb(value, 1, 1)
+    color = "rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")";
     context.beginPath();
     context.lineWidth = strokeWidth;
     context.strokeStyle = color;
-    context.moveTo(x0, y0); 
-    context.lineTo(x1, y1);
+    context.moveTo(point0.x, point0.y); 
+    context.lineTo(point1.x, point1.y);
     context.stroke();
 } 
