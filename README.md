@@ -1,2 +1,2 @@
 # HomePage
-Hosted at: (https://mathias.mellemstuen.no)[https://mathias.mellemstuen.no]
+Hosted at: [https://mathias.mellemstuen.no](https://mathias.mellemstuen.no)
