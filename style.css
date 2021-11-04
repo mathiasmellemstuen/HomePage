@@ -1,6 +1,7 @@
 body {
     margin: 0;
     overflow: hidden;
+    font-family: 'Roboto', sans-serif;
 }
 #content {
     position:fixed; 
@@ -47,7 +48,7 @@ body {
 
 #project-list {
     list-style-type: none;
-    width:50%;
+    width:70%;
     margin-left: 0;
     padding-left: 0;
     margin-right:auto;
@@ -61,4 +62,19 @@ a:hover {
 p {
     margin-top: 10px;
     margin-bottom: 10px;
+}
+#background-bottom-text {
+    position: fixed;
+    width:100%; 
+    left:-10px; 
+    bottom:10px;
+    text-align: right;
+    color:rgba(180, 180, 180, 0.582);
+    font-size: small;
+}
+.list-container-link-text {
+    margin-top:6px;
+    color: rgba(255, 255, 255, 0.411);
+    font-size:small;
+    text-decoration: underline;
 }
